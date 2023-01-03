@@ -1,0 +1,227 @@
+In [1]:
+
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import LabelEncoder,StandardScaler
+from sklearn.linear_model import LinearRegression,Lasso
+from sklearn.metrics import mean_squared_error,mean_absolute_error
+from sklearn.ensemble import RandomForestRegressor 
+import warnings
+warnings.filterwarnings("ignore")
+
+In [2]:
+
+updated_pakwheels=pd.read_csv('updated_pakwheels3.csv')
+updated_pakwheels.head()
+
+In [3]:
+
+updated_pakwheels.shape
+
+In [4]:
+
+updated_pakwheels.isnull().sum()
+
+In [5]:
+
+updated_pakwheels=updated_pakwheels.dropna()
+
+In [6]:
+
+updated_pakwheels.isnull().sum()
+
+In [7]:
+
+updated_pakwheels.shape
+
+In [8]:
+
+updated_pakwheels.dtypes
+
+In [9]:
+
+plt.figure(figsize=(10,6))
+corr = updated_pakwheels.corr()
+sns.heatmap(corr,annot=True)
+plt.show()
+
+In [10]:
+
+plt.figure(figsize=(10,6))
+sns.regplot(x="Mileage", y="Price", data=updated_pakwheels) 
+
+In [11]:
+
+from scipy import stats
+pearson_coef, p_value = stats.pearsonr(updated_pakwheels['Mileage'], updated_pakwheels['Price'])
+print("The Pearson Correlation Coefficient is", pearson_coef, " with a P-value of P =", p_value) 
+
+In [12]:
+
+plt.figure(figsize=(10,6))
+sns.regplot(x="Model Year", y="Price", data=updated_pakwheels)
+
+In [13]:
+
+from scipy import stats
+pearson_coef, p_value = stats.pearsonr(updated_pakwheels['Model Year'], updated_pakwheels['Price'])
+print("The Pearson Correlation Coefficient is", pearson_coef, " with a P-value of P =",p_value) 
+
+In [14]:
+
+plt.figure(figsize=(10,6))
+sns.regplot(x="Engine Capacity", y="Price", data=updated_pakwheels)
+
+In [15]:
+
+from scipy import stats
+pearson_coef, p_value = stats.pearsonr(updated_pakwheels['Engine Capacity'], updated_pakwheels['Price'])
+print("The Pearson Correlation Coefficient is", pearson_coef, " with a P-value of P =", p_value) 
+
+In [16]:
+
+sns.boxplot(x="Color", y="Price", data=updated_pakwheels)
+
+In [17]:
+
+plt.figure(figsize=(10,6))
+sns.boxplot(x="Assembly", y="Price", data=updated_pakwheels)
+
+In [18]:
+
+sns.boxplot(x="Registered City", y="Price", data=updated_pakwheels)
+
+In [19]:
+
+updated_pakwheels.drop(['Registered City', 'Color', 'Model Year', 'Mileage'], axis = 1, inplace = True)
+
+In [20]:
+
+updated_pakwheels.shape
+
+In [21]:
+
+updated_pakwheels.describe()
+
+In [22]:
+
+updated_pakwheels['Price']
+
+In [23]:
+
+updated_pakwheels.describe(include=['object'])
+
+In [24]:
+
+from sklearn.preprocessing import LabelEncoder
+labelencoder = LabelEncoder()
+updated_pakwheels.Name = labelencoder.fit_transform(updated_pakwheels.Name)
+updated_pakwheels.Location = labelencoder.fit_transform(updated_pakwheels.Location)
+updated_pakwheels.Assembly = labelencoder.fit_transform(updated_pakwheels.Assembly)
+
+In [25]:
+
+updated_pakwheels.head(10)
+
+In [26]:
+
+import scipy.stats as stats
+updated_pakwheels = stats.zscore(updated_pakwheels)
+updated_pakwheels = stats.zscore(updated_pakwheels)
+
+In [27]:
+
+updated_pakwheels
+
+In [28]:
+
+x_train=updated_pakwheels.iloc[:,0:11]
+y_train=updated_pakwheels.iloc[:,8]
+x_test=updated_pakwheels.iloc[:,0:11]
+y_test=updated_pakwheels.iloc[:,8]
+
+In [29]:
+
+x_train.head()
+
+In [30]:
+
+y_train.head()
+
+In [31]:
+
+from sklearn.model_selection import train_test_split
+# splitting the data
+x_train, x_test, y_train, y_test = train_test_split(x_train, y_train, test_size = 0.2, random_state = 0) #20% testing data
+
+In [32]:
+
+print (x_train.shape)
+print (x_test.shape)
+
+In [33]:
+
+mlr = LinearRegression()
+model_mlr = mlr.fit(x_train,y_train)
+
+In [34]:
+
+y_pred1 = model_mlr.predict(x_test)
+
+In [35]:
+
+MSE1 = mean_squared_error(y_test,y_pred1)
+print('MSE is ', MSE1)
+
+In [36]:
+
+rf = RandomForestRegressor()
+modelrf=rf.fit(x_train,y_train)
+
+In [37]:
+
+y_pred2 = modelrf.predict(x_test)      
+
+
+In [38]:
+
+MSE2 = mean_squared_error(y_test,y_pred2)
+print('MSE is ', MSE2)
+       
+In [39]:
+
+LassoModel=Lasso()
+im=LassoModel.fit(x_train,y_train)
+
+In [40]:
+
+y_pred2 = modelrf.predict(x_test)
+
+In [41]:
+
+MSE3 = mean_squared_error(y_test,y_pred2)
+print('MSE is ', MSE3)
+
+In [42]:
+
+scores = [('MLR', MSE1),
+          ('Random Forest', MSE2),
+          ('Lasso', MSE3)
+         ]    
+
+In [43]:
+
+MSE = pd.DataFrame(data = scores, columns=['Model', 'MSE Score'])
+MSE
+
+In [44]:
+
+MSE.sort_values(by=(['MSE Score']), ascending=False, inplace=True)
+f, axe = plt.subplots(1,1, figsize=(10,7))
+sns.barplot(x = MSE['Model'], y=MSE['MSE Score'], ax = axe)
+axe.set_xlabel('Model', size=20)
+axe.set_ylabel('Mean Squared Error', size=20)
+
+plt.show()
